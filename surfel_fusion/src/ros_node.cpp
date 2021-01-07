@@ -21,10 +21,12 @@ int main(int argc, char **argv)
 
   SurfelMap surfel_map(nh);
 
+  //!@brief ros::Subscriber用于广播消息->发布出image和depth图像
   ros::Subscriber sub_image = nh.subscribe("image", 5000, &SurfelMap::image_input, &surfel_map);
   ros::Subscriber sub_depth = nh.subscribe("depth", 5000, &SurfelMap::depth_input, &surfel_map);
   ros::Subscriber sub_save_map = nh.subscribe("save_map", 5000, &SurfelMap::save_map, &surfel_map);
 
+  //!@brief Message_filters是消息缓存，当消息到达过滤器时不会立马输出,而是满足条件后再输出
   message_filters::Subscriber<sensor_msgs::PointCloud> sub_loop_stamps(nh, "loop_stamps", 1000);
   message_filters::Subscriber<nav_msgs::Path> sub_loop_path(nh, "loop_path", 1000);
   message_filters::Subscriber<nav_msgs::Odometry> sub_this_pose(nh, "this_pose", 1000);

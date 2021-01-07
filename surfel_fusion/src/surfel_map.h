@@ -33,14 +33,15 @@ typedef pcl::PointCloud<PointType> PointCloud;
 
 using namespace std;
 
+//!@brief 关键帧的位姿元素
 struct PoseElement{
     //pose_index is the index in the vector in the database
-    vector<SurfelElement> attached_surfels;
-    geometry_msgs::Pose cam_pose;
-    geometry_msgs::Pose loop_pose;
-    vector<int> linked_pose_index;
-    int points_begin_index;
-    int points_pose_index;
+    vector<SurfelElement> attached_surfels; // 关联的Surfel信息
+    geometry_msgs::Pose cam_pose;           // 位姿
+    geometry_msgs::Pose loop_pose;          // 位姿,当SLAM信息更改位姿时候，先只更改loop_pose，然后再和cam_pose做对比
+    vector<int> linked_pose_index;          // 包含闭环检测信息和参考关系的关键帧索引
+    int points_begin_index;                 // inactive Surfel在inactive Point Cloud中的起始位置
+    int points_pose_index;                  // 该inactive关键帧索引在pointcloud_pose_index（inactive关键帧索引集合）中的位置
     ros::Time cam_stamp;
     PoseElement() : points_begin_index(-1), points_pose_index(-1) {}
 };
@@ -110,7 +111,6 @@ public:
     int cam_height;
     float cam_fx, cam_fy, cam_cx, cam_cy;
     Eigen::Matrix3d camera_matrix;
-
     // fuse param
     float far_dist, near_dist;
 
@@ -118,10 +118,10 @@ public:
     FusionFunctions fusion_functions;
 
     // database
-    vector<SurfelElement> local_surfels;
-    vector<PoseElement> poses_database;
+    vector<SurfelElement> local_surfels;   // 表示active surfel的集合
+    vector<PoseElement> poses_database;    // 表示关键帧/位姿序列
     // Eigen::Matrix4d local_loop_warp;
-    std::set<int> local_surfels_indexs;
+    std::set<int> local_surfels_indexs;    // active 关键帧索引集合 
     int drift_free_poses;
 
     // for inactive warp
@@ -132,8 +132,8 @@ public:
     void warp_active_surfels_cpu_kernel(int thread_i, int thread_num, Eigen::Matrix4f transform_m);
 
     // for fast publish
-    PointCloud::Ptr inactive_pointcloud;
-    std::vector<int> pointcloud_pose_index;
+    PointCloud::Ptr inactive_pointcloud;    // inactive surfels集合（用点云方式存储）
+    std::vector<int> pointcloud_pose_index; // inactive关键帧集合
 
     // ros related
     ros::NodeHandle &nh;
